@@ -2,6 +2,8 @@ import { createContext, ReactNode, useEffect, useState} from 'react';
 
 import challanges from '../../challenges.json';
 
+import Cookies from 'js-cookie'
+
 interface Challange {
     type: 'body' | 'eye';
     description: string;
@@ -22,20 +24,29 @@ interface ChallangesContextData {
 
 interface ChallangesProviderProps {
     children: ReactNode;
+    level: number;
+    currentExperience: number;
+    challangesCompleted: number;
 }
 
 export const ChallangesContext = createContext({} as ChallangesContextData);
 
-export function ChallangesProvider({children}: ChallangesProviderProps){
-    const [level, setLevel] = useState(1);
-    const [currentExperience, setCurrentExperience] = useState(0);
-    const [challangesCompleted, setChallangesCompleted] = useState(0);
+export function ChallangesProvider({children, ...rest}: ChallangesProviderProps){
+    const [level, setLevel] = useState(rest.level ?? 1);
+    const [currentExperience, setCurrentExperience] = useState(rest.currentExperience ?? 0);
+    const [challangesCompleted, setChallangesCompleted] = useState(rest.challangesCompleted ?? 0);
 
     const experienceToNextLevel = Math.pow((level + 1 )* 4, 2)
 
     useEffect(() => {
         Notification.requestPermission();
     },[])
+
+    useEffect(() => {
+        Cookies.set('level', String(level));
+        Cookies.set('currentExperience', String(currentExperience));
+        Cookies.set('challangesCompleted', String(challangesCompleted));
+    },[level, currentExperience, challangesCompleted])
 
     const [activeChallange, setActiveChallange] = useState(null);
 
