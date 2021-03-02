@@ -3,6 +3,7 @@ import { createContext, ReactNode, useEffect, useState} from 'react';
 import challanges from '../../challenges.json';
 
 import Cookies from 'js-cookie'
+import { LevelUpModal } from '../components/LevelUpModal';
 
 interface Challange {
     type: 'body' | 'eye';
@@ -19,6 +20,7 @@ interface ChallangesContextData {
     activeChallange: Challange;
     resetChallange: () => void;
     completeChallange: () => void;
+    closeLevelUpModal: () => void;
     experienceToNextLevel: number;
 }
 
@@ -32,12 +34,16 @@ interface ChallangesProviderProps {
 export const ChallangesContext = createContext({} as ChallangesContextData);
 
 export function ChallangesProvider({children, ...rest}: ChallangesProviderProps){
+    
     const [level, setLevel] = useState(rest.level ?? 1);
     const [currentExperience, setCurrentExperience] = useState(rest.currentExperience ?? 0);
     const [challangesCompleted, setChallangesCompleted] = useState(rest.challangesCompleted ?? 0);
 
-    const experienceToNextLevel = Math.pow((level + 1 )* 4, 2)
+    const [activeChallange, setActiveChallange] = useState(null);
+    const [isLevelUpModalOpen, setIsLevelUpModalOpen] = useState(false)
 
+    const experienceToNextLevel = Math.pow((level + 1 )* 4, 2)
+    
     useEffect(() => {
         Notification.requestPermission();
     },[])
@@ -48,10 +54,14 @@ export function ChallangesProvider({children, ...rest}: ChallangesProviderProps)
         Cookies.set('challangesCompleted', String(challangesCompleted));
     },[level, currentExperience, challangesCompleted])
 
-    const [activeChallange, setActiveChallange] = useState(null);
 
     function levelUp(){
         setLevel(level + 1);
+        setIsLevelUpModalOpen(true);
+    }
+
+    function closeLevelUpModal(){
+        setIsLevelUpModalOpen(false)
     }
 
     function startNewChallange(){
@@ -103,10 +113,13 @@ export function ChallangesProvider({children, ...rest}: ChallangesProviderProps)
                 startNewChallange,
                 activeChallange,
                 resetChallange,
-                completeChallange
+                completeChallange,
+                closeLevelUpModal,
             
             }}>
             {children}
+
+            {isLevelUpModalOpen && <LevelUpModal />}
         </ChallangesContext.Provider>
     )
 }
